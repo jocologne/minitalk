@@ -6,11 +6,18 @@
 /*   By: jcologne <jcologne@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 12:07:21 by jcologne          #+#    #+#             */
-/*   Updated: 2025/02/12 09:02:55 by jcologne         ###   ########.fr       */
+/*   Updated: 2025/02/12 10:08:37 by jcologne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
+
+volatile int	g_char_received = 0;
+
+void	ack_handler(int signal)
+{
+	g_char_received = 1;
+}
 
 static int	validate(char *str)
 {
@@ -58,14 +65,15 @@ void	send_signal(char c, pid_t server)
 	i = 7;
 	while (i >= 0)
 	{
+		g_char_received = 0;
 		if (c & (1 << i))
 			kill(server, SIGUSR2);
 		else
 			kill(server, SIGUSR1);
-		usleep(150);
+		while (!g_char_received)
+			pause();
 		i--;
 	}
-	usleep(150);
 }
 
 int	main(int ac, char **av)
@@ -80,6 +88,7 @@ int	main(int ac, char **av)
 	}
 	server = ft_atoi(av[1]);
 	message = av[2];
+	signal(SIGUSR1, ack_handler);
 	while (*message)
 	{
 		send_signal(*message, server);

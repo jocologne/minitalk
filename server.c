@@ -6,17 +6,19 @@
 /*   By: jcologne <jcologne@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 12:07:41 by jcologne          #+#    #+#             */
-/*   Updated: 2025/02/12 08:20:12 by jcologne         ###   ########.fr       */
+/*   Updated: 2025/02/12 10:09:24 by jcologne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-void	read_signal(int signal)
+void	read_signal(int signal, siginfo_t *info, void *context)
 {
 	static unsigned char	c;
 	static int				bit_index;
+	pid_t					client_pid;
 
+	client_pid = info->si_pid;
 	if (signal == SIGUSR1)
 		c &= ~(1 << (7 - bit_index));
 	else if (signal == SIGUSR2)
@@ -28,13 +30,18 @@ void	read_signal(int signal)
 		c = 0;
 		bit_index = 0;
 	}
+	kill(client_pid, SIGUSR1);
 }
 
 int	main(void)
 {
+	struct sigaction	sa;
+
 	ft_printf("%d\n", getpid());
-	signal(SIGUSR1, read_signal);
-	signal(SIGUSR2, read_signal);
+	sa.sa_sigaction = read_signal;
+	sa.sa_flags = SA_SIGINFO;
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
 	while (1)
 		pause();
 	return (0);
