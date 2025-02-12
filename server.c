@@ -6,7 +6,7 @@
 /*   By: jcologne <jcologne@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 12:07:41 by jcologne          #+#    #+#             */
-/*   Updated: 2025/02/12 10:09:24 by jcologne         ###   ########.fr       */
+/*   Updated: 2025/02/12 10:47:06 by jcologne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,8 @@ void	read_signal(int signal, siginfo_t *info, void *context)
 	pid_t					client_pid;
 
 	client_pid = info->si_pid;
-	if (signal == SIGUSR1)
-		c &= ~(1 << (7 - bit_index));
-	else if (signal == SIGUSR2)
-		c |= (1 << (7 - bit_index));
+	if (signal == SIGUSR2)
+		c = c + (1 << (7 - bit_index));
 	bit_index++;
 	if (bit_index == 8)
 	{
